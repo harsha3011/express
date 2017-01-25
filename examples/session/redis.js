@@ -1,17 +1,26 @@
-
+/**
+ * Module dependencies.
+ */
 
 var express = require('../..');
+var logger = require('morgan');
+var session = require('express-session');
 
 // pass the express to the connect redis module
-// allowing it to inherit from express.session.Store
-var RedisStore = require('connect-redis')(express);
+// allowing it to inherit from session.Store
+var RedisStore = require('connect-redis')(session);
 
 var app = express();
 
-app.use(express.logger('dev'));
+app.use(logger('dev'));
 
 // Populates req.session
-app.use(express.session({ store: new RedisStore, secret: 'keyboard cat' }));
+app.use(session({
+  resave: false, // don't save session if unmodified
+  saveUninitialized: false, // don't create session until something stored
+  secret: 'keyboard cat',
+  store: new RedisStore
+}));
 
 app.get('/', function(req, res){
   var body = '';

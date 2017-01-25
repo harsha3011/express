@@ -1,11 +1,11 @@
-
 /**
  * Module dependencies.
  */
 
-var express = require('../..')
-  , fs = require('fs')
-  , md = require('marked').parse;
+var escapeHtml = require('escape-html');
+var express = require('../..');
+var fs = require('fs');
+var marked = require('marked');
 
 var app = module.exports = express();
 
@@ -14,17 +14,12 @@ var app = module.exports = express();
 app.engine('md', function(path, options, fn){
   fs.readFile(path, 'utf8', function(err, str){
     if (err) return fn(err);
-    try {
-      var html = md(str);
-      html = html.replace(/\{([^}]+)\}/g, function(_, name){
-        return options[name] || '';
-      })
-      fn(null, html);
-    } catch(err) {
-      fn(err);
-    }
+    var html = marked.parse(str).replace(/\{([^}]+)\}/g, function(_, name){
+      return escapeHtml(options[name] || '');
+    });
+    fn(null, html);
   });
-})
+});
 
 app.set('views', __dirname + '/views');
 
@@ -33,11 +28,11 @@ app.set('view engine', 'md');
 
 app.get('/', function(req, res){
   res.render('index', { title: 'Markdown Example' });
-})
+});
 
 app.get('/fail', function(req, res){
   res.render('missing', { title: 'Markdown Example' });
-})
+});
 
 /* istanbul ignore next */
 if (!module.parent) {

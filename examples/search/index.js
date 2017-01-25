@@ -1,4 +1,3 @@
-
 // first:
 // $ npm install redis
 // $ redis-server
@@ -7,9 +6,10 @@
  * Module dependencies.
  */
 
-var express = require('../..')
-  , redis = require('redis')
-  , db = redis.createClient();
+var express = require('../..');
+var redis = require('redis');
+
+var db = redis.createClient();
 
 // npm install redis
 
@@ -38,23 +38,23 @@ app.get('/', function(req, res){
  * GET search for :query.
  */
 
-app.get('/search/:query?', function(req, res){
+app.get('/search/:query?', function(req, res, next){
   var query = req.params.query;
   db.smembers(query, function(err, vals){
-    if (err) return res.send(500);
+    if (err) return next(err);
     res.send(vals);
   });
 });
 
 /**
- * GET client javascript. Here we use sendfile()
+ * GET client javascript. Here we use sendFile()
  * because serving __dirname with the static() middleware
  * would also mean serving our server "index.js" and the "search.jade"
  * template.
  */
 
 app.get('/client.js', function(req, res){
-  res.sendfile(__dirname + '/client.js');
+  res.sendFile(__dirname + '/client.js');
 });
 
 /* istanbul ignore next */
