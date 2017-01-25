@@ -2,6 +2,7 @@
 var express = require('../')
   , request = require('supertest')
   , assert = require('assert');
+var utils = require('./support/utils');
 
 describe('res', function(){
   describe('.jsonp(object)', function(){
@@ -136,11 +137,8 @@ describe('res', function(){
       request(app)
       .get('/')
       .expect('Content-Type', 'application/vnd.example+json; charset=utf-8')
-      .expect(200, '{"hello":"world"}', function (err, res) {
-        if (err) return done(err);
-        res.headers.should.not.have.property('x-content-type-options');
-        done();
-      });
+      .expect(utils.shouldNotHaveHeader('X-Content-Type-Options'))
+      .expect(200, '{"hello":"world"}', done);
     })
 
     it('should override previous Content-Types with callback', function(done){
@@ -266,14 +264,7 @@ describe('res', function(){
     })
 
     describe('"json spaces" setting', function(){
-      it('should default to 2 in development', function(){
-        process.env.NODE_ENV = 'development';
-        var app = express();
-        app.get('json spaces').should.equal(2);
-        process.env.NODE_ENV = 'test';
-      })
-
-      it('should be undefined otherwise', function(){
+      it('should be undefined by default', function(){
         var app = express();
         assert(undefined === app.get('json spaces'));
       })

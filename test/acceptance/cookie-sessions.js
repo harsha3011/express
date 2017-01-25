@@ -2,10 +2,6 @@
 var app = require('../../examples/cookie-sessions')
 var request = require('supertest')
 
-function getCookie(res) {
-  return res.headers['set-cookie'][0].split(';')[0]
-}
-
 describe('cookie-sessions', function () {
   describe('GET /', function () {
     it('should display no views', function (done) {
@@ -17,7 +13,7 @@ describe('cookie-sessions', function () {
     it('should set a session cookie', function (done) {
       request(app)
       .get('/')
-      .expect('Set-Cookie', /connect\.sess=/)
+      .expect('Set-Cookie', /express:sess=/)
       .expect(200, done)
     })
 
@@ -28,9 +24,15 @@ describe('cookie-sessions', function () {
         if (err) return done(err)
         request(app)
         .get('/')
-        .set('Cookie', getCookie(res))
+        .set('Cookie', getCookies(res))
         .expect(200, 'viewed 1 times\n', done)
       })
     })
   })
 })
+
+function getCookies(res) {
+  return res.headers['set-cookie'].map(function (val) {
+    return val.split(';')[0]
+  }).join('; ');
+}
