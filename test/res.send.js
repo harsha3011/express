@@ -15,7 +15,8 @@ describe('res', function(){
 
       request(app)
       .get('/')
-      .expect('', done);
+      .expect('Content-Length', '0')
+      .expect(200, '', done);
     })
   })
 
@@ -29,7 +30,7 @@ describe('res', function(){
 
       request(app)
       .get('/')
-      .expect('', done);
+      .expect(200, '', done);
     })
   })
 
@@ -115,13 +116,13 @@ describe('res', function(){
       var app = express();
 
       app.use(function (req, res) {
-        var str = Array(1024 * 2).join('-');
+        var str = Array(1000).join('-');
         res.send(str);
       });
 
       request(app)
       .get('/')
-      .expect('ETag', 'W/"7ff-fFD7Se+Vsq6deAl063thow"')
+      .expect('ETag', 'W/"3e7-VYgCBglFKiDVAcpzPNt4Sg"')
       .expect(200, done);
     })
 
@@ -187,13 +188,13 @@ describe('res', function(){
       var app = express();
 
       app.use(function (req, res) {
-        var str = Array(1024 * 2).join('-');
+        var str = Array(1000).join('-');
         res.send(new Buffer(str));
       });
 
       request(app)
       .get('/')
-      .expect('ETag', 'W/"7ff-fFD7Se+Vsq6deAl063thow"')
+      .expect('ETag', 'W/"3e7-VYgCBglFKiDVAcpzPNt4Sg"')
       .expect(200, done);
     })
 
@@ -207,7 +208,7 @@ describe('res', function(){
       request(app)
       .get('/')
       .end(function(err, res){
-        res.headers.should.have.property('content-type', 'text/plain');
+        res.headers.should.have.property('content-type', 'text/plain; charset=utf-8');
         res.text.should.equal('hey');
         res.statusCode.should.equal(200);
         done();
@@ -301,15 +302,17 @@ describe('res', function(){
 
   it('should respond with 304 Not Modified when fresh', function(done){
     var app = express();
+    var etag = '"asdf"';
 
     app.use(function(req, res){
-      var str = Array(1024 * 2).join('-');
+      var str = Array(1000).join('-');
+      res.set('ETag', etag);
       res.send(str);
     });
 
     request(app)
     .get('/')
-    .set('If-None-Match', 'W/"7ff-fFD7Se+Vsq6deAl063thow"')
+    .set('If-None-Match', etag)
     .expect(304, done);
   })
 
@@ -395,7 +398,7 @@ describe('res', function(){
         var app = express();
 
         app.use(function (req, res) {
-          var str = Array(1024 * 2).join('-');
+          var str = Array(1000).join('-');
           res.send(str);
         });
 
@@ -403,7 +406,7 @@ describe('res', function(){
 
         request(app)
         .get('/')
-        .expect('ETag', 'W/"7ff-fFD7Se+Vsq6deAl063thow"')
+        .expect('ETag', 'W/"3e7-VYgCBglFKiDVAcpzPNt4Sg"')
         .expect(200, done);
       });
 
@@ -444,7 +447,7 @@ describe('res', function(){
         var app = express();
 
         app.use(function (req, res) {
-          var str = Array(1024 * 2).join('-');
+          var str = Array(1000).join('-');
           res.send(str);
         });
 
@@ -512,8 +515,10 @@ describe('res', function(){
         var app = express();
 
         app.set('etag', function (body, encoding) {
-          body.should.equal('hello, world!');
-          encoding.should.equal('utf8');
+          var chunk = !Buffer.isBuffer(body)
+            ? new Buffer(body, encoding)
+            : body;
+          chunk.toString().should.equal('hello, world!');
           return '"custom"';
         });
 

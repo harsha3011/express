@@ -1,13 +1,14 @@
 
 var express = require('../')
   , request = require('supertest')
+  , cookieParser = require('cookie-parser')
 
 describe('req', function(){
   describe('.signedCookies', function(){
     it('should return a signed JSON cookie', function(done){
       var app = express();
 
-      app.use(express.cookieParser('secret'));
+      app.use(cookieParser('secret'));
 
       app.use(function(req, res){
         if ('/set' == req.path) {
@@ -28,7 +29,7 @@ describe('req', function(){
         .get('/')
         .set('Cookie', cookie)
         .end(function(err, res){
-          if (err) return don(err);
+          if (err) return done(err);
           res.body.should.eql({ obj: { foo: 'bar' } });
           done();
         });

@@ -8,12 +8,12 @@ describe('res', function(){
       var app = express();
 
       app.use(function(req, res){
-        res.set('Content-Type', 'text/x-foo').end();
+        res.set('Content-Type', 'text/x-foo; charset=utf-8').end();
       });
 
       request(app)
       .get('/')
-      .expect('Content-Type', 'text/x-foo')
+      .expect('Content-Type', 'text/x-foo; charset=utf-8')
       .end(done);
     })
 
@@ -58,6 +58,20 @@ describe('res', function(){
       .get('/')
       .expect('X-Numbers', '123, 456')
       .expect(200, '["123","456"]', done);
+    })
+
+    it('should not set a charset of one is already set', function (done) {
+      var app = express();
+
+      app.use(function (req, res) {
+        res.set('Content-Type', 'text/html; charset=lol');
+        res.end();
+      });
+
+      request(app)
+      .get('/')
+      .expect('Content-Type', 'text/html; charset=lol')
+      .expect(200, done);
     })
   })
 

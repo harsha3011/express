@@ -34,6 +34,20 @@ describe('res', function(){
       .expect('<p>tobi</p>', done);
     })
 
+    it('should error without "view engine" set and no file extension', function (done) {
+      var app = createApp();
+
+      app.locals.user = { name: 'tobi' };
+
+      app.use(function(req, res){
+        res.render(__dirname + '/fixtures/user');
+      });
+
+      request(app)
+      .get('/')
+      .expect(500, /No default engine was specified/, done);
+    })
+
     it('should expose app.locals', function(done){
       var app = createApp();
 
@@ -48,7 +62,22 @@ describe('res', function(){
       .get('/')
       .expect('<p>tobi</p>', done);
     })
-  
+
+    it('should expose app.locals with `name` property', function(done){
+      var app = createApp();
+
+      app.set('views', __dirname + '/fixtures');
+      app.locals.name = 'tobi';
+
+      app.use(function(req, res){
+        res.render('name.tmpl');
+      });
+
+      request(app)
+      .get('/')
+      .expect('<p>tobi</p>', done);
+    })
+
     it('should support index.<engine>', function(done){
       var app = createApp();
 
@@ -80,7 +109,7 @@ describe('res', function(){
 
         request(app)
         .get('/')
-        .expect(/Cannot read property 'name' of undefined/, done);
+        .expect(/Cannot read property '[^']+' of undefined/, done);
       })
     })
 
@@ -98,6 +127,54 @@ describe('res', function(){
         request(app)
         .get('/')
         .expect('<p>This is an email</p>', done);
+      })
+    })
+
+    describe('when "views" is given', function(){
+      it('should lookup the file in the path', function(done){
+        var app = createApp();
+
+        app.set('views', __dirname + '/fixtures/default_layout');
+
+        app.use(function(req, res){
+          res.render('user.tmpl', { user: { name: 'tobi' } });
+        });
+
+        request(app)
+        .get('/')
+        .expect('<p>tobi</p>', done);
+      })
+
+      describe('when array of paths', function(){
+        it('should lookup the file in the path', function(done){
+          var app = createApp();
+          var views = [__dirname + '/fixtures/local_layout', __dirname + '/fixtures/default_layout'];
+
+          app.set('views', views);
+
+          app.use(function(req, res){
+            res.render('user.tmpl', { user: { name: 'tobi' } });
+          });
+
+          request(app)
+          .get('/')
+          .expect('<span>tobi</span>', done);
+        })
+
+        it('should lookup in later paths until found', function(done){
+          var app = createApp();
+          var views = [__dirname + '/fixtures/local_layout', __dirname + '/fixtures/default_layout'];
+
+          app.set('views', views);
+
+          app.use(function(req, res){
+            res.render('name.tmpl', { name: 'tobi' });
+          });
+
+          request(app)
+          .get('/')
+          .expect('<p>tobi</p>', done);
+        })
       })
     })
   })
@@ -251,7 +328,7 @@ describe('res', function(){
 
         request(app)
         .get('/')
-        .expect(/Cannot read property 'name' of undefined/, done);
+        .expect(/Cannot read property '[^']+' of undefined/, done);
       })
     })
   })
