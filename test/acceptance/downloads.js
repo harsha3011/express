@@ -1,5 +1,5 @@
 
-var app = require('../../examples/downloads/app')
+var app = require('../../examples/downloads')
   , request = require('supertest');
 
 describe('downloads', function(){
@@ -15,11 +15,8 @@ describe('downloads', function(){
     it('should have a download header', function(done){
       request(app)
       .get('/files/amazing.txt')
-      .end(function(err, res){
-        res.status.should.equal(200);
-        res.headers.should.have.property('content-disposition', 'attachment; filename="amazing.txt"')
-        done()
-      })
+      .expect('Content-Disposition', 'attachment; filename="amazing.txt"')
+      .expect(200, done)
     })
   })
 
